@@ -512,7 +512,7 @@ def get_dataloader_summ(
         dataset_name=args.dataset_name,
         join_method=args.join_method,
         tokenizer=tokenizer,
-        max_input_len=args.max_length_input,
+        max_input_len=500,
         max_output_len=args.max_length_tgt,
         mask_num=args.mask_num,
         num_data=args.num_train_data,

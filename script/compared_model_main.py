@@ -470,10 +470,13 @@ def train(args):
     checkpoint_callback = ModelCheckpoint(
         dirpath=args.ckpt_path,
         filename="{step}-{vloss:.2f}-{avgr:.4f}",
-        save_top_k=args.saveTopK,
+        # save_top_k=args.saveTopK,
         monitor="avgr",
         mode="max",
-        save_on_train_epoch_end=False,
+        save_last=True,
+       # save_top_k=5,
+        #every_n_epochs=1,
+        every_n_train_steps=44972,
     )
 
     # initialize logger
@@ -541,8 +544,9 @@ def train(args):
         )
     # pdb.set_trace()
     trainer.fit(model, train_dataloader, valid_dataloader)
+
     if args.test_imediate:
-        args.resume_ckpt = checkpoint_callback.best_model_path
+        args.resume_ckpt = checkpoint_callback.last_model_path
         print(args.resume_ckpt)
         if args.test_batch_size != -1:
             args.batch_size = args.test_batch_size
@@ -608,14 +612,14 @@ if __name__ == "__main__":
 
     ########################
     # Gneral
-    parser.add_argument("--gpus", default=0, type=int, help="number of gpus to use")
+    parser.add_argument("--gpus", default=1, type=int, help="number of gpus to use")
     parser.add_argument(
         "--accelerator", default=None, type=str, help="Type of accelerator"
     )
-    parser.add_argument("--mode", default="train", choices=["train", "test"])
+    parser.add_argument("--mode", default="test", choices=["train", "test"])
     parser.add_argument(
         "--model_name",
-        default="google/pegasus-large",
+        default="facebook/bart-large",
         choices=[
             "google/pegasus-large",
             "google/bigbird-pegasus-large-arxiv",
@@ -640,34 +644,34 @@ if __name__ == "__main__":
     )
 
     parser.add_argument("--progress_bar_refresh_rate", default=1, type=int)
-    parser.add_argument("--model_path", type=str, default="./pegasus/")
+    parser.add_argument("--model_path", type=str, default="./bart/")
     parser.add_argument("--ckpt_path", type=str, default=None)
     parser.add_argument("--saveTopK", default=3, type=int)
     parser.add_argument(
         "--resume_ckpt",
+        default='/home/nlp/wolhanr/graph_qasrl/primer/script/bart/summ_checkpoints/',
         type=str,
         help="Path of a checkpoint to resume from",
-        default=None,
     )
 
     parser.add_argument(
         "--data_path", type=str, default="../processed_data/multi_news/"
     )
-    parser.add_argument("--dataset_name", type=str, default="arxiv")
+    parser.add_argument("--dataset_name", type=str, default="multi_news")
     parser.add_argument(
-        "--dataset_cache_dir", type=str, default="/net/nfs2.s2-research/wenx/dataset/"
+        "--dataset_cache_dir", type=str, default="/home/nlp/wolhanr/cache/"
     )
     parser.add_argument(
         "--num_workers",
         type=int,
-        default=4,
+        default=5,
         help="Number of workers to use for dataloader",
     )
 
-    parser.add_argument("--batch_size", default=4, type=int)
-    parser.add_argument("--max_length_input", default=4096, type=int)
-    parser.add_argument("--max_length_tgt", default=1024, type=int)
-    parser.add_argument("--min_length_tgt", default=0, type=int)
+    parser.add_argument("--batch_size", default=1, type=int)
+    parser.add_argument("--max_length_input", default=1024, type=int)
+    parser.add_argument("--max_length_tgt", default=500, type=int)
+    parser.add_argument("--min_length_tgt", default=50, type=int)
     parser.add_argument("--label_smoothing", type=float, default=0.0, required=False)
     parser.add_argument(
         "--adafactor", action="store_true", help="Use adafactor optimizer"
@@ -689,7 +693,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--pretrained_model_path",
         type=str,
-        default="/net/nfs2.s2-research/wenx/code/pretrained_models/",
+        default="/home/nlp/wolhanr/pretrained_models/",
     )
     parser.add_argument(
         "--limit_valid_batches",
@@ -698,13 +702,13 @@ if __name__ == "__main__":
     )
     parser.add_argument("--lr", type=float, default=3e-5, help="Maximum learning rate")
     parser.add_argument(
-        "--warmup_steps", type=int, default=1000, help="Number of warmup steps"
+        "--warmup_steps", type=int, default=10000, help="Number of warmup steps"
     )
     parser.add_argument(
-        "--accum_data_per_step", type=int, default=16, help="Number of data per step"
+        "--accum_data_per_step", type=int, default=1, help="Number of data per step"
     )
     parser.add_argument(
-        "--total_steps", type=int, default=50000, help="Number of steps to train"
+        "--total_steps", type=int, default=224860, help="Number of steps to train"
     )
     parser.add_argument(
         "--num_train_data",
@@ -720,6 +724,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--test_imediate",
+        default=True,
         action="store_true",
         help="test on the best checkpoint",
     )
@@ -736,7 +741,7 @@ if __name__ == "__main__":
         default=None,
         help="Number of batches to test in the test mode.",
     )
-    parser.add_argument("--beam_size", type=int, default=1, help="size of beam search")
+    parser.add_argument("--beam_size", type=int, default=5, help="size of beam search")
     parser.add_argument(
         "--length_penalty",
         type=float,
