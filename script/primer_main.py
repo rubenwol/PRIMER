@@ -588,7 +588,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     ########################
     # Gneral
-    parser.add_argument("--gpus", default=0, type=int, help="number of gpus to use")
+    parser.add_argument("--gpus", default=1, type=int, help="number of gpus to use")
     parser.add_argument(
         "--accelerator", default=None, type=str, help="Type of accelerator"
     )
@@ -636,7 +636,7 @@ if __name__ == "__main__":
         help="Number of workers to use for dataloader",
     )
 
-    parser.add_argument("--batch_size", default=4, type=int)
+    parser.add_argument("--batch_size", default=1, type=int)
     parser.add_argument("--max_length_input", default=4096, type=int)
     parser.add_argument("--max_length_tgt", default=1024, type=int)
     parser.add_argument("--min_length_tgt", default=0, type=int)
@@ -653,7 +653,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--attention_window", type=int, default=512, help="Attention window"
     )
-    parser.add_argument("--label_smoothing", type=float, default=0.0, required=False)
+    parser.add_argument("--label_smoothing", type=float, default=0.1, required=False)
     parser.add_argument(
         "--adafactor", action="store_true", help="Use adafactor optimizer"
     )
@@ -678,7 +678,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--primer_path",
         type=str,
-        default="../PRIMER/",
+        # default="../PRIMER/",
+        default="/home/nlp/wolhanr/graph_qasrl/primer/PRIMER",
     )
     parser.add_argument(
         "--limit_valid_batches",
@@ -687,7 +688,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("--lr", type=float, default=3e-5, help="Maximum learning rate")
     parser.add_argument(
-        "--warmup_steps", type=int, default=1000, help="Number of warmup steps"
+        "--warmup_steps", type=int, default=10000, help="Number of warmup steps"
     )
     parser.add_argument(
         "--report_steps", type=int, default=50, help="Number of report steps"
@@ -699,10 +700,10 @@ if __name__ == "__main__":
         help="Number of steps to evaluate",
     )
     parser.add_argument(
-        "--accum_data_per_step", type=int, default=16, help="Number of data per step"
+        "--accum_data_per_step", type=int, default=1, help="Number of data per step"
     )
     parser.add_argument(
-        "--total_steps", type=int, default=50000, help="Number of steps to train"
+        "--total_steps", type=int, default=100000, help="Number of steps to train"
     )
     parser.add_argument(
         "--num_train_data",
@@ -738,7 +739,7 @@ if __name__ == "__main__":
         default=None,
         help="Number of batches to test in the test mode.",
     )
-    parser.add_argument("--beam_size", type=int, default=1, help="size of beam search")
+    parser.add_argument("--beam_size", type=int, default=5, help="size of beam search")
     parser.add_argument(
         "--length_penalty",
         type=float,

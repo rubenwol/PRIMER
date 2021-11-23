@@ -616,7 +616,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--accelerator", default=None, type=str, help="Type of accelerator"
     )
-    parser.add_argument("--mode", default="test", choices=["train", "test"])
+    parser.add_argument("--mode", default="train", choices=["train", "test"])
     parser.add_argument(
         "--model_name",
         default="facebook/bart-large",
@@ -649,7 +649,7 @@ if __name__ == "__main__":
     parser.add_argument("--saveTopK", default=3, type=int)
     parser.add_argument(
         "--resume_ckpt",
-        default='/home/nlp/wolhanr/graph_qasrl/primer/script/bart/summ_checkpoints/',
+        default=None,
         type=str,
         help="Path of a checkpoint to resume from",
     )

@@ -139,6 +139,14 @@ class SummarizationDataset(Dataset):
                     + input_ids
                     + [self.tokenizer.eos_token_id]
                 )
+            elif self.join_method == "take_the_longer_document":
+                # take the document with the more word according to split white space
+
+                src = max(all_docs, key=lambda doc: len(doc.split(' ')))
+                input_ids = self.tokenizer.encode(
+                    src, truncation=True, max_length=self.max_input_len
+                )
+
 
             output_ids = self.tokenizer.encode(
                 tgt, truncation=True, max_length=self.max_output_len
@@ -442,6 +450,18 @@ class SummarizationIterDataset(IterableDataset):
                         tgt, truncation=True, max_length=self.max_output_len
                     )
 
+                elif self.join_method == "take_the_longer_document":
+                    # take the document with the more word according to split white space
+
+                    src = max(all_docs, key=lambda doc: len(doc.split(' ')))
+                    input_ids = self.tokenizer.encode(
+                        src, truncation=True, max_length=self.max_input_len
+                    )
+                    tgt = data["tgt"]
+                    output_ids = self.tokenizer.encode(
+                        tgt, truncation=True, max_length=self.max_output_len
+                    )
+
                 if self.tokenizer.bos_token_id is None:  # pegasus
                     output_ids = [self.tokenizer.pad_token_id] + output_ids
                     input_ids = input_ids[1:]
@@ -512,7 +532,7 @@ def get_dataloader_summ(
         dataset_name=args.dataset_name,
         join_method=args.join_method,
         tokenizer=tokenizer,
-        max_input_len=500,
+        max_input_len=args.max_length_input,
         max_output_len=args.max_length_tgt,
         mask_num=args.mask_num,
         num_data=args.num_train_data,
