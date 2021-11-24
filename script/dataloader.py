@@ -538,7 +538,7 @@ def get_dataloader_summ(
         hf_dataset=d,
         dataset_name=args.dataset_name,
         join_method=args.join_method,
-        qasrl_method=args.qasrl_method
+        qasrl_method=args.qasrl_method,
         tokenizer=tokenizer,
         max_input_len=args.max_length_input,
         max_output_len=args.max_length_tgt,
