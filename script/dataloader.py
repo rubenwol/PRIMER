@@ -15,6 +15,7 @@ class SummarizationDataset(Dataset):
         hf_dataset,
         dataset_name,
         join_method,
+        qasrl_method,
         tokenizer,
         max_input_len,
         max_output_len,
@@ -27,6 +28,7 @@ class SummarizationDataset(Dataset):
         self.hf_dataset = hf_dataset
         self.dataset_name = dataset_name
         self.join_method = join_method
+        self.qasrl_method = qasrl_method
         self.tokenizer = tokenizer
         self.max_input_len = max_input_len
         self.max_output_len = max_output_len
@@ -56,12 +58,17 @@ class SummarizationDataset(Dataset):
             )
         else:  # multi-doc setting
             if self.dataset_name == "multi_news":
-                all_docs = entry["document"].split("|||||")[:-1]
-                for i, doc in enumerate(all_docs):
-                    doc = doc.replace("\n", " ")
-                    doc = " ".join(doc.split())
-                    all_docs[i] = doc
-                tgt = entry["summary"]
+                if self.qasrl_method == 'text_and_qasrl':
+                    print('Need implement')
+                else:
+                    column_text = "qasrl" if self.qasrl_method == "only_qasrl" else "document"
+                    all_docs = entry[column_text].split("|||||")[:-1]
+                    for i, doc in enumerate(all_docs):
+                        doc = doc.replace("\n", " ")
+                        doc = " ".join(doc.split())
+                        all_docs[i] = doc
+                    tgt = entry["summary"]
+
             elif self.dataset_name == "multi_x_science_sum":
                 all_docs = [entry["abstract"]]
                 for d in entry["ref_abstract"]["abstract"]:
@@ -531,6 +538,7 @@ def get_dataloader_summ(
         hf_dataset=d,
         dataset_name=args.dataset_name,
         join_method=args.join_method,
+        qasrl_method=args.qasrl_method
         tokenizer=tokenizer,
         max_input_len=args.max_length_input,
         max_output_len=args.max_length_tgt,

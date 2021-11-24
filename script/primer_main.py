@@ -373,7 +373,8 @@ def pretrain(args):
     checkpoint_callback = ModelCheckpoint(
         dirpath=args.ckpt_path,
         filename="{step}-{vloss:.2f}",
-        save_top_k=args.saveTopK,
+        # save_top_k=args.saveTopK,
+        save_last=True,
         monitor="vloss",
         mode="min",
     )
@@ -641,6 +642,8 @@ if __name__ == "__main__":
     parser.add_argument("--max_length_tgt", default=1024, type=int)
     parser.add_argument("--min_length_tgt", default=0, type=int)
     parser.add_argument("--join_method", type=str, default="concat_start_wdoc_global")
+    "--qasrl_method"
+    parser.add_argument("--qasrl_method", type=str, default="only_text")
     parser.add_argument(
         "--attention_dropout", type=float, default=0.1, help="attention dropout"
     )
@@ -703,7 +706,7 @@ if __name__ == "__main__":
         "--accum_data_per_step", type=int, default=1, help="Number of data per step"
     )
     parser.add_argument(
-        "--total_steps", type=int, default=100000, help="Number of steps to train"
+        "--total_steps", type=int, default=224860, help="Number of steps to train"
     )
     parser.add_argument(
         "--num_train_data",

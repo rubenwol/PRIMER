@@ -629,6 +629,7 @@ if __name__ == "__main__":
         ],
     )
     parser.add_argument("--join_method", type=str, default="concat_start_eachdoc")
+    parser.add_argument("--qasrl_method", type=str, default="only_text")
     parser.add_argument(
         "--debug_mode", action="store_true", help="set true if to debug"
     )
