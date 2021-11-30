@@ -57,7 +57,7 @@ class SummarizationDataset(Dataset):
                 tgt, truncation=True, max_length=self.max_output_len
             )
         else:  # multi-doc setting
-            if self.dataset_name == "multi_news":
+            if self.dataset_name == "multi_news" or  self.dataset_name =="multi_news_qasrl":
                 if self.qasrl_method == 'text_and_qasrl':
                     print('Need implement')
                 else:

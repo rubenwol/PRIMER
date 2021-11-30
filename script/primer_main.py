@@ -19,7 +19,7 @@ import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.plugins import DDPPlugin
-from datasets import load_dataset, load_metric
+from datasets import load_dataset, load_metric, Dataset, DatasetDict
 from dataloader import (
     get_dataloader_summ,
     get_dataloader_pretrain,
@@ -65,6 +65,10 @@ class PRIMERSummarizerLN(pl.LightningModule):
             args.primer_path,
             config=config,
         )
+
+        if "qasrl" in self.qasrl_method:
+            self.tokenizer.add_tokens(["<qa/>", "</qa>", "<a>"])
+            self.model.resize_token_embeddings(len(self.tokenizer))
 
         self.use_ddp = args.accelerator == "ddp"
         self.docsep_token_id = self.tokenizer.convert_tokens_to_ids("<doc-sep>")
@@ -465,9 +469,7 @@ def train(args):
         replace_sampler_ddp=True,
         accumulate_grad_batches=args.acc_batch,
         val_check_interval=args.val_check_interval,
-        check_val_every_n_epoch=1
-        if args.num_train_data > 100 or args.num_train_data == -1
-        else 5,
+        check_val_every_n_epoch=5,
         logger=logger,
         log_every_n_steps=5,
         callbacks=checkpoint_callback,
@@ -491,6 +493,18 @@ def train(args):
         valid_dataloader = get_dataloader_summ(
             args, hf_datasets, model.tokenizer, "validation", args.num_workers, False
         )
+
+    elif "qasrl" in args.dataset_name:
+
+        hf_datasets = DatasetDict.load_from_disk("/home/nlp/wolhanr/data/multi_news/multi_news_qasrl")
+        #need to change here
+        train_dataloader = get_dataloader_summ(
+            args, hf_datasets, model.tokenizer, "train", 0, True
+        )
+        valid_dataloader = get_dataloader_summ(
+            args, hf_datasets, model.tokenizer, "validation", 0, False
+        )
+
     elif (
         ("duc" in args.dataset_name)
         or ("tac" in args.dataset_name)
@@ -560,6 +574,11 @@ def test(args):
         test_dataloader = get_dataloader_summ(
             args, hf_datasets, model.tokenizer, "test", args.num_workers, False
         )
+    elif "qasrl" in args.dataset_name:
+        hf_datasets = DatasetDict.load_from_disk("/home/nlp/wolhanr/data/multi_news/multi_news_qasrl")
+        test_dataloader = get_dataloader_summ(
+            args, hf_datasets, model.tokenizer, "test", 0, False
+        )
     elif (
         ("duc" in args.dataset_name)
         or ("tac" in args.dataset_name)
@@ -615,7 +634,7 @@ if __name__ == "__main__":
 
     parser.add_argument("--progress_bar_refresh_rate", default=1, type=int)
     parser.add_argument(
-        "--model_path", type=str, default="./longformer_summ_multinews/"
+        "--model_path", type=str, default="./qasrl_only/"
     )
     parser.add_argument("--ckpt_path", type=str, default=None)
     parser.add_argument("--saveTopK", default=3, type=int)
@@ -642,7 +661,6 @@ if __name__ == "__main__":
     parser.add_argument("--max_length_tgt", default=1024, type=int)
     parser.add_argument("--min_length_tgt", default=0, type=int)
     parser.add_argument("--join_method", type=str, default="concat_start_wdoc_global")
-    "--qasrl_method"
     parser.add_argument("--qasrl_method", type=str, default="only_text")
     parser.add_argument(
         "--attention_dropout", type=float, default=0.1, help="attention dropout"

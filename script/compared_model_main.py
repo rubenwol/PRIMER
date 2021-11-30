@@ -9,6 +9,7 @@ from tqdm import tqdm
 import pandas as pd
 import pdb
 from datasets import load_dataset, load_metric
+from datasets import Dataset, DatasetDict
 import json
 from transformers import (
     PegasusForConditionalGeneration,
@@ -136,6 +137,9 @@ class BSLSummarizerLN(pl.LightningModule):
                 cache_dir=os.path.join(args.pretrained_model_path, "led_large"),
                 gradient_checkpointing=True,
             )
+        if "qasrl" in self.qasrl_method:
+            self.tokenizer.add_tokens(["<qa/>", "</qa>", "<a>"])
+            self.model.resize_token_embeddings(len(self.tokenizer))
         # if args.debug_mode:
         #     pdb.set_trace()
         self.pad_token_id = self.tokenizer.pad_token_id
@@ -490,7 +494,7 @@ def train(args):
         replace_sampler_ddp=False,
         accumulate_grad_batches=args.acc_batch,
         # val_check_interval=0.5,
-        check_val_every_n_epoch=1 if args.num_train_data > 100 else 5,
+        check_val_every_n_epoch=5,
         logger=logger,
         log_every_n_steps=5,
         callbacks=checkpoint_callback,
@@ -510,6 +514,17 @@ def train(args):
         valid_dataloader = get_dataloader_summ(
             args, hf_datasets, model.tokenizer, "validation", 0, False
         )
+
+    elif "qasrl" in args.dataset_name:
+
+        hf_datasets = DatasetDict.load_from_disk(args.dataset_name)
+        train_dataloader = get_dataloader_summ(
+            args, hf_datasets, model.tokenizer, "train", 0, True
+        )
+        valid_dataloader = get_dataloader_summ(
+            args, hf_datasets, model.tokenizer, "validation", 0, False
+        )
+
     elif (
         ("duc" in args.dataset_name)
         or ("tac" in args.dataset_name)
@@ -579,6 +594,11 @@ def test(args):
     if args.dataset_name in ["multi_news", "multi_x_science_sum"]:
 
         hf_datasets = load_dataset(args.dataset_name, cache_dir=args.dataset_cache_dir)
+        test_dataloader = get_dataloader_summ(
+            args, hf_datasets, model.tokenizer, "test", 0, False
+        )
+    elif "qasrl" in args.dataset_name:
+        hf_datasets = DatasetDict.load_from_disk(args.dataset_name)
         test_dataloader = get_dataloader_summ(
             args, hf_datasets, model.tokenizer, "test", 0, False
         )
@@ -658,7 +678,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--data_path", type=str, default="../processed_data/multi_news/"
     )
-    parser.add_argument("--dataset_name", type=str, default="multi_news")
+    parser.add_argument("--dataset_name", type=str, default="multi_news") #/home/nlp/wolhanr/data/multi_news/multi_news_qasrl
     parser.add_argument(
         "--dataset_cache_dir", type=str, default="/home/nlp/wolhanr/cache/"
     )
@@ -672,7 +692,7 @@ if __name__ == "__main__":
     parser.add_argument("--batch_size", default=1, type=int)
     parser.add_argument("--max_length_input", default=1024, type=int)
     parser.add_argument("--max_length_tgt", default=500, type=int)
-    parser.add_argument("--min_length_tgt", default=50, type=int)
+    parser.add_argument("--min_length_tgt", default=0, type=int)
     parser.add_argument("--label_smoothing", type=float, default=0.0, required=False)
     parser.add_argument(
         "--adafactor", action="store_true", help="Use adafactor optimizer"
