@@ -66,7 +66,7 @@ class PRIMERSummarizerLN(pl.LightningModule):
             config=config,
         )
 
-        if "qasrl" in self.qasrl_method:
+        if "qasrl" in args.qasrl_method:
             self.tokenizer.add_tokens(["<qa/>", "</qa>", "<a>"])
             self.model.resize_token_embeddings(len(self.tokenizer))
 
@@ -724,7 +724,7 @@ if __name__ == "__main__":
         "--accum_data_per_step", type=int, default=1, help="Number of data per step"
     )
     parser.add_argument(
-        "--total_steps", type=int, default=224860, help="Number of steps to train"
+        "--total_steps", type=int, default=100000, help="Number of steps to train"
     )
     parser.add_argument(
         "--num_train_data",

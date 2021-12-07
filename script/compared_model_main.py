@@ -137,7 +137,7 @@ class BSLSummarizerLN(pl.LightningModule):
                 cache_dir=os.path.join(args.pretrained_model_path, "led_large"),
                 gradient_checkpointing=True,
             )
-        if "qasrl" in self.qasrl_method:
+        if "qasrl" in args.qasrl_method:
             self.tokenizer.add_tokens(["<qa/>", "</qa>", "<a>"])
             self.model.resize_token_embeddings(len(self.tokenizer))
         # if args.debug_mode:
